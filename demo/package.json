@@ -1,0 +1,19 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint ./src/**"
+  },
+  "dependencies": {
+    "@inficen/eslint-plugin-prefer-types": "file:../",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.35.1",
+    "eslint": "^8.23.0",
+    "eslint-plugin-local-rules": "^1.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.8.2"
+  }
+}
