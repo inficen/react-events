@@ -54,10 +54,13 @@ export const usePublish = <T extends Event>(): PublishFunction<T> =>
 export const usePubSub = <T extends Event>() =>
   useContext(PubSubContext) as PubSubContextValue<T>
 
+/**
+ * All return values are equal to their singleton versions but are typed.
+ */
 export function createPubSubContext<Events extends Event>() {
   return {
     PubSubProvider,
-    usePubSub: <T extends Event>() => usePubSub<T>(),
+    usePubSub: usePubSub as <T extends Event>() => PubSubContextValue<T>,
     useSubscribe: useSubscribe as UseSubscribeFunction<Events>,
     usePublish: usePublish as PublishFunction<Events>,
   }
