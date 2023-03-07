@@ -3,7 +3,7 @@ import { createPubSub } from "."
 import { render } from "@testing-library/react"
 
 describe("Testing usage with react-hooks", () => {
-  it("should be able to subscribe, publish events and clean up subscription", async () => {
+  it("should be able to subscribe, publish events and clean up subscription", () => {
     type Events =
       | {
           name: "event-1"

@@ -1,57 +1,95 @@
-# @inficen/eslint-plugin-prefer-types &middot; [![npm version](https://badge.fury.io/js/@inficen%2Feslint-plugin-prefer-types.svg)](https://badge.fury.io/js/@inficen%2Feslint-plugin-prefer-types)
+# @inficen/react-events &middot; [![npm version](https://badge.fury.io/js/@inficen%2Freact-events.svg)](https://badge.fury.io/js/@inficen%2Freact-events)
+
+## Motivation
+
+To provide a maintained, React/Typescript friendly and simple implementation [pub/sub pattern](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) package that is easy to use.
 
 ## Installation
 
-You'll first need to install [ESLint](https://eslint.org/):
-
-```sh
-npm i eslint --save-dev
+```
+npm install @inficen/react-events
 ```
 
-Next, install `@inficen/eslint-plugin-prefer-types`:
+## How to use
 
-```sh
-npm install @inficen/eslint-plugin-prefer-types --save-dev
+### Vanilla JS
+
+Instantiate `PubSub` class and use it like so:
+
+```ts
+import { PubSub } from "@inficen/react-events"
+
+type Events =
+  | {
+      name: "event-1"
+      payload: string
+    }
+  | {
+      name: "event-2"
+      payload: {
+        metaData: string
+      }
+    }
+
+const { publish, subscribe } = new PubSub<Events>()
+
+// Subscribe to an event by calling subscribe function,
+// returning an unsubscribe function that you can call again to unsubscribe/cleanup
+const unsubscribe1 = subscribe("event-1", (payload) => {
+  console.log("Event 1 fired with", payload)
+})
+
+// Publish event-1, any callback subscription should now be called
+publish("event-1", "hello world!")
+
+// Clean up
+unsubscribe1()
 ```
 
-## Usage
+### React
 
-Add `@inficen/prefer-types` to the plugins section of your `.eslintrc` configuration file. You can omit the `eslint-plugin-` prefix:
+This packages provides `createPubSub` factory function that can be used nicely with React. It returns:
 
-```json
-{
-  "plugins": ["@inficen/prefer-types"]
+- `useSubscribe` hook: Works similar to `subscribe` function but hooked into component lifecycle and clean up subscription for you automatically on component unmount.
+- `publish` function: Works exactly like `publish` function of PubSub class
+
+Example:
+
+```tsx
+import React, { useState } from "react"
+import { createPubSub } from "@inficen/react-events"
+
+type Events =
+  | {
+      name: "event-1"
+      payload: string
+    }
+  | {
+      name: "event-2"
+      payload: {
+        metaData: string
+      }
+    }
+
+const { publish, useSubscribe } = createPubSub<Events>()
+
+const Subscriber = () => {
+  const [payload, setPayload] = useState("")
+  useSubscribe("event-1", (payload) => {
+    // Do something
+    setPayload(payload)
+  })
+
+  return payload ? `Received ${payload}` : null
+}
+
+const Publisher = () => {
+  return (
+    <button onClick={() => publish("event-1", "hello world!")}>
+      Trigger event
+    </button>
+  )
 }
 ```
 
-Then configure the rules you want to use under the rules section.
-
-```json
-{
-  "rules": {
-    "@inficen/prefer-types/prefer-types": "warn"
-  }
-}
-```
-
-If you haven't already, you will need to setup ESLint to work with typescript using [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint).
-
-```
-npm install --save-dev @typescript-eslint/parser
-```
-
-A minimal configuration would look as follows
-
-```JSON
-{
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "@inficen/prefer-types"],
-  "rules": {
-    "@inficen/prefer-types/prefer-types": "warn"
-  }
-}
-```
-
-## Supported Rules
-
-- [`prefer-types`](./docs/rules/prefer-types.md)
+Note that each `createPubSub` call will create its own scope of events and subscriptions. It's up to you on how to share a scope across your component tree. You can consider using React Context or your statement management library.

@@ -1,2 +1,4 @@
 dist
 demo
+.eslintrc.js
+node_modules
