@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { PubSub, Event, PayloadEventNames, EventPayload } from "./pub-sub"
 
-export function usePubSub<Events extends Event>() {
+export function createPubSub<Events extends Event>() {
   const { subscribe, publish } = new PubSub<Events>()
 
   function useSubscribe<
@@ -18,6 +18,6 @@ export function usePubSub<Events extends Event>() {
 
   return {
     useSubscribe,
-    usePublish: () => publish,
+    publish,
   }
 }
