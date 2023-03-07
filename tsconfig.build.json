@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.base.json",
   "exclude": ["node_modules", "src/**/*.test.ts"],
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "outDir": "./es",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "declaration": true
+  }
 }
