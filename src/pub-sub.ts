@@ -3,10 +3,10 @@ import { v4 as uuidv4 } from "uuid"
 export type Event = { name: string; payload?: unknown } | string
 
 export class PubSub<Events extends Event> {
-  eventMap = new Map<string, Map<string, Subscriber>>()
+  eventMap = new Map<string, Map<string, Subscriber<any>>>()
 
   subscribe = <
-    EventName extends PayloadEventNames<Events>,
+    EventName extends EventNames<Events>,
     Payload extends EventPayload<Events, EventName>,
   >(
     event: EventName,
@@ -38,8 +38,7 @@ export class PubSub<Events extends Event> {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Subscriber = (payload: any) => void
+type Subscriber<T = unknown> = (payload: T) => void
 
 type PublishFunction<T extends Event> = {
   <EventName extends StringEventNames<T>>(event: EventName): void
@@ -73,8 +72,7 @@ export type PayloadEventNames<T extends Event> = Exclude<
 
 type GetEventHelper<T extends Event, U extends EventNames<T>> = T extends {
   name: U
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: any
+  payload: unknown
 }
   ? T
   : never

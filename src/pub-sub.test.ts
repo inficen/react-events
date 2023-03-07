@@ -99,6 +99,25 @@ describe("PubSub", () => {
 
     const pubsub = new PubSub<MyEvents>()
 
+    function assertNever(_: never) {
+      return undefined
+    }
+
+    pubsub.subscribe("bar", (_: number) => undefined)
+    // @ts-expect-error
+    pubsub.subscribe("bar", (_: string) => undefined)
+    pubsub.subscribe("page-load", ({ timestamp, url }) => undefined)
+    // @ts-expect-error
+    pubsub.subscribe("page-load", (_: string) => undefined)
+    pubsub.subscribe("string-event", (_) => {
+      assertNever(_)
+    })
+
+    pubsub.subscribe("page-load", (_) => {
+      // @ts-expect-error
+      assertNever(_)
+    })
+
     pubsub.publish("event-2", "hello")
     // @ts-expect-error
     pubsub.publish("event-2", 5)

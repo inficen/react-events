@@ -21,8 +21,8 @@ describe("Testing usage with react-hooks", () => {
     const mockSubscriber = jest.fn()
 
     const Subscriber = () => {
-      useSubscribe("event-1", ({ metaData }) => {
-        mockSubscriber({ metaData })
+      useSubscribe("event-1", (data) => {
+        mockSubscriber(data)
       })
       return null
     }

@@ -1,11 +1,11 @@
 import { useEffect } from "react"
-import { PubSub, Event, PayloadEventNames, EventPayload } from "./pub-sub"
+import { PubSub, Event, EventPayload, EventNames } from "./pub-sub"
 
 export function createPubSub<Events extends Event>() {
   const { subscribe, publish } = new PubSub<Events>()
 
   function useSubscribe<
-    EventName extends PayloadEventNames<Events>,
+    EventName extends EventNames<Events>,
     Payload extends EventPayload<Events, EventName>,
   >(event: EventName, callback: (payload: Payload) => void) {
     useEffect(() => {
