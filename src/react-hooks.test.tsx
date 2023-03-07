@@ -12,6 +12,12 @@ describe("Testing usage with react-hooks", () => {
           }
         }
       | {
+          name: "optional-payload"
+          payload?: {
+            metaData: string
+          }
+        }
+      | {
           name: "event-2"
         }
       | "string-event"
@@ -28,6 +34,12 @@ describe("Testing usage with react-hooks", () => {
     }
 
     const { rerender } = render(<Subscriber />)
+
+    publish("optional-payload", {
+      metaData: "test",
+    })
+
+    publish("optional-payload")
 
     publish("event-1", {
       metaData: "test",
@@ -59,5 +71,140 @@ describe("Testing usage with react-hooks", () => {
 
     // Subscription should be cleaned up and not trigger additional call
     expect(mockSubscriber).toHaveBeenCalledTimes(2)
+  })
+
+  it("can supply event types", () => {
+    type Events =
+      | {
+          name: "payload-event"
+          payload: {
+            metaData: string
+          }
+        }
+      | {
+          name: "optional-payload"
+          payload?: {
+            metaData: string
+          }
+        }
+      | {
+          name: "object-string-event"
+        }
+      | "string-event"
+
+    const { publish, useSubscribe } = createPubSub<Events>()
+    // const { publish, useSubscribe } = createPubSub<any>()
+
+    function assertNever(val: never) {
+      return
+    }
+
+    const Subscriber = () => {
+      useSubscribe("string-event", (_) => {
+        assertNever(_)
+      })
+      useSubscribe("object-string-event", (_) => {
+        assertNever(_)
+      })
+      useSubscribe("payload-event", ({ metaData }) => {
+        return
+      })
+      // can ignore payload arg
+      useSubscribe("payload-event", () => {
+        return
+      })
+
+      // @ts-expect-error cannot destructure optional object argumetn
+      useSubscribe("optional-payload", ({ metaData }) => {
+        return
+      })
+
+      // can destrure after proving existence
+      useSubscribe("optional-payload", (data) => {
+        if (data) {
+          const { metaData } = data
+        }
+      })
+    }
+
+    publish("payload-event", { metaData: "test" })
+    // @ts-expect-error payload event without payload
+    publish("payload-event")
+    // @ts-expect-error payload event with incorrect type
+    publish("payload-event", { bla: "asdfk" })
+    publish("optional-payload", { metaData: "test" })
+    publish("optional-payload")
+    // @ts-expect-error optional payload event with incorrect type
+    publish("optional-payload", 5)
+    publish("object-string-event")
+    // @ts-expect-error object-string-event with payload
+    publish("object-string-event", 5)
+    publish("string-event")
+    // @ts-expect-error string-event with payload
+    publish("string-event", 5)
+  })
+
+  it("works without event types", () => {
+    type Events =
+      | {
+          name: "payload-event"
+          payload: {
+            metaData: string
+          }
+        }
+      | {
+          name: "optional-payload"
+          payload?: {
+            metaData: string
+          }
+        }
+      | {
+          name: "object-string-event"
+        }
+      | "string-event"
+
+    const { publish, useSubscribe } = createPubSub<any>()
+
+    function assertNever(val: never) {
+      return
+    }
+
+    const Subscriber = () => {
+      useSubscribe("string-event", (_) => {
+        assertNever(_)
+      })
+      useSubscribe("object-string-event", (_) => {
+        assertNever(_)
+      })
+      useSubscribe("payload-event", ({ metaData }) => {
+        return
+      })
+      // can ignore payload arg
+      useSubscribe("payload-event", () => {
+        return
+      })
+
+      useSubscribe("optional-payload", ({ metaData }) => {
+        return
+      })
+
+      // can destrure after proving existence
+      useSubscribe("optional-payload", (data) => {
+        if (data) {
+          const { metaData } = data
+        }
+      })
+    }
+
+    publish("payload-event", { metaData: "test" })
+    publish("payload-event")
+    publish("payload-event", { bla: "asdfk" })
+    publish("optional-payload", { metaData: "test" })
+    publish("optional-payload")
+    publish("optional-payload", 5)
+    publish("object-string-event")
+    publish("object-string-event", 5)
+    publish("string-event")
+    publish("string-event", 5)
   })
 })

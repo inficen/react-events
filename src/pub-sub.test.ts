@@ -70,68 +70,113 @@ describe("PubSub", () => {
     expect(mockSubscriber2).toHaveBeenCalledTimes(2)
   })
 
-  it("should typecheck correctly", () => {
-    type MyEvents =
+  it("can supply event types", () => {
+    type Events =
       | {
-          name: "event-2"
-          payload: string
-        }
-      | {
-          name: "bar"
-          payload: number
-        }
-      | {
-          name: "page-load"
+          name: "payload-event"
           payload: {
-            timestamp: number
-            url: string
+            metaData: string
           }
         }
       | {
-          name: "error"
-          payload: {
-            name: string
-            message: string
+          name: "optional-payload"
+          payload?: {
+            metaData: string
           }
+        }
+      | {
+          name: "object-string-event"
         }
       | "string-event"
-      | { name: "event-with-no-data" }
 
-    const pubsub = new PubSub<MyEvents>()
+    const { publish, subscribe } = new PubSub<Events>()
 
-    function assertNever(_: never) {
-      return undefined
+    function assertNever(val: never) {
+      return
     }
 
-    pubsub.subscribe("bar", (_: number) => undefined)
-    // @ts-expect-error
-    pubsub.subscribe("bar", (_: string) => undefined)
-    pubsub.subscribe("page-load", ({ timestamp, url }) => undefined)
-    // @ts-expect-error
-    pubsub.subscribe("page-load", (_: string) => undefined)
-    pubsub.subscribe("string-event", (_) => {
+    publish("payload-event", { metaData: "test" })
+    // @ts-expect-error payload event without payload
+    publish("payload-event")
+    // @ts-expect-error payload event with incorrect type
+    publish("payload-event", { bla: "asdfk" })
+    publish("optional-payload", { metaData: "test" })
+    publish("optional-payload")
+    // @ts-expect-error optional payload event with incorrect type
+    publish("optional-payload", 5)
+    publish("object-string-event")
+    // @ts-expect-error object-string-event with payload
+    publish("object-string-event", 5)
+    publish("string-event")
+    // @ts-expect-error string-event with payload
+    publish("string-event", 5)
+
+    subscribe("string-event", (_) => {
       assertNever(_)
     })
-
-    pubsub.subscribe("page-load", (_) => {
-      // @ts-expect-error
+    subscribe("object-string-event", (_) => {
       assertNever(_)
     })
+    subscribe("payload-event", ({ metaData }) => {
+      return
+    })
+    // can ignore payload arg
+    subscribe("payload-event", () => {
+      return
+    })
 
-    pubsub.publish("event-2", "hello")
-    // @ts-expect-error
-    pubsub.publish("event-2", 5)
-    // @ts-expect-error
-    pubsub.publish("event-2", true)
-    // @ts-expect-error
-    pubsub.publish("bar", "hello")
-    pubsub.publish("bar", 5)
-    // @ts-expect-error
-    pubsub.publish("bar", true)
-    pubsub.publish("page-load", { timestamp: 123, url: "asldkfj" })
-    pubsub.publish("string-event")
-    pubsub.publish("event-with-no-data")
-    // @ts-expect-error
-    pubsub.publish("event-with-no-data", {})
+    // @ts-expect-error cannot destructure optional object argumetn
+    subscribe("optional-payload", ({ metaData }) => {
+      return
+    })
+
+    // can destrure after proving existence
+    subscribe("optional-payload", (data) => {
+      if (data) {
+        const { metaData } = data
+      }
+    })
+  })
+
+  it("works without event types", () => {
+    const { publish, subscribe } = new PubSub<any>()
+
+    function assertNever(val: never) {
+      return
+    }
+
+    publish("payload-event", { metaData: "test" })
+    publish("payload-event")
+    publish("payload-event", { bla: "asdfk" })
+    publish("optional-payload", { metaData: "test" })
+    publish("optional-payload")
+    publish("optional-payload", 5)
+    publish("object-string-event")
+    publish("object-string-event", 5)
+    publish("string-event")
+    publish("string-event", 5)
+
+    subscribe("string-event", (_) => {
+      return
+    })
+    subscribe("object-string-event", (_) => {
+      return
+    })
+    subscribe("payload-event", ({ metaData }) => {
+      return
+    })
+    // can ignore payload arg
+    subscribe("payload-event", () => {
+      return
+    })
+
+    subscribe("optional-payload", ({ metaData }) => {
+      return
+    })
+
+    // can destrure after proving existence
+    subscribe("optional-payload", (data) => {
+      return
+    })
   })
 })

@@ -1,2 +1,6 @@
-export * from "./react-hooks"
-export * from "./pub-sub"
+export {
+  createPubSub,
+  UseSubscribeFunction,
+  CreatePubSubReturnType,
+} from "./react-hooks"
+export { PublishFunction, SubscribeFunction, PubSub } from "./pub-sub"
