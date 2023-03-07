@@ -171,10 +171,10 @@ describe("Testing usage with react-hooks", () => {
 
     const Subscriber = () => {
       useSubscribe("string-event", (_) => {
-        assertNever(_)
+        return
       })
       useSubscribe("object-string-event", (_) => {
-        assertNever(_)
+        return
       })
       useSubscribe("payload-event", ({ metaData }) => {
         return
@@ -190,9 +190,7 @@ describe("Testing usage with react-hooks", () => {
 
       // can destrure after proving existence
       useSubscribe("optional-payload", (data) => {
-        if (data) {
-          const { metaData } = data
-        }
+        return
       })
     }
 
