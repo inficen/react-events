@@ -1,4 +1,3 @@
-/** @type {import('@types/eslint').Linter.Config} */
 module.exports = {
   root: true,
   plugins: ["@typescript-eslint"],
@@ -8,11 +7,9 @@ module.exports = {
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
   ],
   parserOptions: {
-    tsconfigRootDir: __dirname,
     project: ["./tsconfig.json"],
   },
-  files: ["**/*.ts"],
   env: {
     node: true,
   },
-};
+}

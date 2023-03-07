@@ -1,11 +1,17 @@
 import { v4 as uuidv4 } from "uuid"
 
-type Event = { event: string; data?: unknown } | string
+export type Event = { name: string; payload?: unknown } | string
 
 export class PubSub<Events extends Event> {
   eventMap = new Map<string, Map<string, Subscriber>>()
 
-  subscribe = (event: EventNames<Events>, callback: Subscriber) => {
+  subscribe = <
+    EventName extends PayloadEventNames<Events>,
+    Payload extends EventPayload<Events, EventName>,
+  >(
+    event: EventName,
+    callback: (payload: Payload) => void,
+  ) => {
     if (!this.eventMap.has(event)) {
       this.eventMap.set(event, new Map())
     }
@@ -24,50 +30,51 @@ export class PubSub<Events extends Event> {
     }
   }
 
-  publish: PublishFunction<Events> = (event: string, data?: unknown) => {
-    const listeners = this.eventMap.get(event)
+  publish: PublishFunction<Events> = (name: string, payload?: unknown) => {
+    const listeners = this.eventMap.get(name)
     if (listeners) {
-      listeners.forEach((callback) => callback(data))
+      listeners.forEach((callback) => callback(payload))
     }
   }
 }
 
-type Subscriber = (data: unknown) => void
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Subscriber = (payload: any) => void
 
 type PublishFunction<T extends Event> = {
   <EventName extends StringEventNames<T>>(event: EventName): void
-
   <
     EventName extends PayloadEventNames<T>,
-    Payload extends EventData<T, EventName>,
+    Payload extends EventPayload<T, EventName>,
   >(
-    event: EventName,
-    data: Payload,
+    name: EventName,
+    payload: Payload,
   ): void
 }
 
-type EventNames<T extends Event> = T extends string
+export type EventNames<T extends Event> = T extends string
   ? T
-  : T extends { event: unknown }
-  ? T["event"]
+  : T extends { name: unknown }
+  ? T["name"]
   : never
 
 type StringEventNames<T extends Event> = T extends string
   ? T
-  : T extends { event: unknown; data: unknown }
+  : T extends { name: unknown; payload: unknown }
   ? never
-  : T extends { event: unknown }
-  ? T["event"]
+  : T extends { name: unknown }
+  ? T["name"]
   : never
 
-type PayloadEventNames<T extends Event> = Exclude<
+export type PayloadEventNames<T extends Event> = Exclude<
   EventNames<T>,
   StringEventNames<T>
 >
 
 type GetEventHelper<T extends Event, U extends EventNames<T>> = T extends {
-  event: U
-  data: any
+  name: U
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any
 }
   ? T
   : never
@@ -78,53 +85,9 @@ type GetEvent<T extends Event, U extends EventNames<T>> = [
   ? U
   : GetEventHelper<T, U>
 
-type EventData<T extends Event, U extends EventNames<T>> = GetEvent<
+export type EventPayload<T extends Event, U extends EventNames<T>> = GetEvent<
   T,
   U
-> extends { event: U; data: infer R }
+> extends { name: U; payload: infer R }
   ? R
   : never
-
-type MyEvents =
-  | {
-      event: "foo"
-      data: string
-    }
-  | {
-      event: "bar"
-      data: number
-    }
-  | {
-      event: "page-load"
-      data: {
-        timestamp: number
-        url: string
-      }
-    }
-  | {
-      event: "error"
-      data: {
-        event: string
-        message: string
-      }
-    }
-  | "string-event"
-  | { event: "event-with-no-data" }
-
-const pubsub = new PubSub<MyEvents>()
-
-pubsub.publish("foo", "hello")
-// @ts-expect-error
-pubsub.publish("foo", 5)
-// @ts-expect-error
-pubsub.publish("foo", true)
-// @ts-expect-error
-pubsub.publish("bar", "hello")
-pubsub.publish("bar", 5)
-// @ts-expect-error
-pubsub.publish("bar", true)
-pubsub.publish("page-load", { timestamp: 123, url: "asldkfj" })
-pubsub.publish("string-event")
-pubsub.publish("event-with-no-data")
-// @ts-expect-error
-pubsub.publish("event-with-no-data", {})
