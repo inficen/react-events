@@ -15,7 +15,7 @@
     "clean": "rimraf dist es",
     "build": "pnpm clean && pnpm build:esm && pnpm build:cjs",
     "build:esm": "tsc -p ./tsconfig.build.json",
-    "build:cjs": "babel src --out-dir dist -x .ts --ignore **/*.test.ts && tsc ",
+    "build:cjs": "babel src --out-dir dist -x .ts -x .tsx --ignore **/*.test.ts && tsc ",
     "lint": "eslint ./src",
     "test": "jest",
     "prepare": "husky install",
